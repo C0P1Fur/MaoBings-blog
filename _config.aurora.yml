@@ -14,7 +14,7 @@ site:
   nick: MaoBing
   description: 小猫用来存博客的地方（也会发一点有趣的东西）
   link: '/'
-  language: cn
+  language: ch
   multi_language: true
   logo: images\MB-fursuit.png 
   avatar: images\MB-drinking.png
@@ -53,7 +53,7 @@ authors:
 #! ---------------------------------------------------------------
 menu:
   About: true
-  Tags: false
+  Tags: true
   Archives: false
   Friends: false
 #! ---------------------------------------------------------------
