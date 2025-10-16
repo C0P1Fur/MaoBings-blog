@@ -16,8 +16,8 @@ site:
   link: '/'
   language: cn
   multi_language: true
-  logo: ./source/icons/MaoBings-head.png 
-  avatar:
+  logo: .\source\icons\MaoBings-head.png 
+  avatar: .\source\icons\MaoBings-head.png
   beian:
     number: ''
     link: ''
@@ -26,7 +26,7 @@ site:
     link: ''
   # Start date of the blog YYY-MM-DD
   # 博客开始运行日期
-  started_date:
+  started_date: 2025-10-16
   # Path unique identifier (文章 URL 唯一标识)
   # uid: use unique ID
   # slug: use generated slug base on title
@@ -53,9 +53,12 @@ authors:
 #! ---------------------------------------------------------------
 menu:
   About: true
-  Tags: true
-  Archives: true
+  Tags: false
+  Archives: false
   Friends: false
+  Email:
+    name: '我的邮箱'
+    path: 'mailto:2995578272@qq.com'
 
 #! ---------------------------------------------------------------
 #! Theme Config
