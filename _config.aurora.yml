@@ -9,14 +9,14 @@
 #！ @docs https://aurora.tridiamond.tech/guide/configuration.html
 #! ---------------------------------------------------------------
 site:
-  subtitle: Aurora's Blog
-  author: Aurora
-  nick: Auroral UI
-  description:
+  subtitle: MaoBing's sanctuary 
+  author: 猫冰
+  nick: MaoBing
+  description: 小猫用来存博客的地方（也会发一点有趣的东西）
   link: '/'
-  language: en
+  language: cn
   multi_language: true
-  logo:
+  logo: .\source\icon\Maobings-head.png
   avatar:
   beian:
     number: ''
