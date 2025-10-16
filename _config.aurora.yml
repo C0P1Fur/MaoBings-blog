@@ -16,7 +16,7 @@ site:
   link: '/'
   language: cn
   multi_language: true
-  logo: https://maobing.top/source/icons/MaoBings-head.png 
+  logo: ![](/icons/MaoBings-head.png) 
   avatar:
   beian:
     number: ''
