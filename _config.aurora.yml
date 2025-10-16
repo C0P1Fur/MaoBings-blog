@@ -16,8 +16,8 @@ site:
   link: '/'
   language: cn
   multi_language: true
-  logo: .\source\icons\MaoBings-head.png 
-  avatar: .\source\icons\MaoBings-head.png
+  logo: images\MB-fursuit.png 
+  avatar: images\MB-drinking.png
   beian:
     number: ''
     link: ''
@@ -56,22 +56,18 @@ menu:
   Tags: false
   Archives: false
   Friends: false
-  Email:
-    name: '我的邮箱'
-    path: 'mailto:2995578272@qq.com'
-
 #! ---------------------------------------------------------------
 #! Theme Config
 #! @docs https://aurora.tridiamond.tech/guide/theme.html
 #! ---------------------------------------------------------------
 theme:
   dark_mode: true
-  profile_shape: diamond # support `circle`, `diamond`, `rounded`
+  profile_shape: 'rounded' # support `circle`, `diamond`, `rounded`
   feature: true
   gradient:
-    color_1: '#24c6dc'
-    color_2: '#5433ff'
-    color_3: '#ff0099'
+    color_1: '#336699'
+    color_2: '#0099cc'
+    color_3: '#666666'
 
 #! ---------------------------------------------------------------
 #! Social Configs
@@ -81,9 +77,9 @@ socials:
   customs:
   ##! Example:
   ##! --- Using SVG
-  # bilibili:
-  #   icon: http://localhost:4000/svg/bilibili.svg
-  #   link: https://live.bilibili.com/22619211
+    bilibili:
+      icon: images\bilibili.svg
+      link: https://space.bilibili.com/2140016240
 
   ##! --- Using IconFont
   # baidu:
@@ -101,7 +97,7 @@ socials:
 #! ---------------------------------------------------------------
 site_meta:
   cdn: cn
-  favicon:
+  favicon: /images/MB-head.png
   description: ''
   keywords: ''
   author: ''
@@ -219,4 +215,5 @@ footer_links:
 #! ---------------------------------------------------------------
 shiki:
   enable: true
+  theme: 'github-dark'  
   backgroundColor: "#1a1a1a"
