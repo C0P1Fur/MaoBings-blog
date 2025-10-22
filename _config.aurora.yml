@@ -83,10 +83,12 @@ socials:
   customs:
   ##! Example:
   ##! --- Using SVG
-    bilibili:
-      icon: images\bilibili.svg
-      link: https://space.bilibili.com/2140016240
-
+    github: 'https://github.com/C0P1Fur'
+    twitter: 'https://x.com/_Caticee'
+    customs:
+      bilibili:
+        icon: /images/bilibili.svg
+        link: https://space.bilibili.com/2140016240
   ##! --- Using IconFont
   # baidu:
   #   icon: iconfont icon-baidu
