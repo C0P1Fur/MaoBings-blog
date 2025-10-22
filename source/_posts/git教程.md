@@ -3,7 +3,7 @@ title: git分支部分教程
 date: 2025-10-16 22:46:06
 tags:
  - tutorial
-catagories:
+categories:
  - git
 feature: true
 ---
