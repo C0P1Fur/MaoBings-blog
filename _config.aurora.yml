@@ -14,10 +14,10 @@ site:
   nick: MaoBing
   description: 小猫用来存博客的地方（也会发一点有趣的东西）
   link: '/'
-  language: ch
+  language: cn
   multi_language: true
-  logo: images\MB-fursuit.png 
-  avatar: images\MB-drinking.png
+  logo: /images/MB-fursuit.png 
+  avatar: /images/MB-drinking.png
   beian:
     number: ''
     link: ''
@@ -52,8 +52,14 @@ authors:
 #！ @docs https://aurora.tridiamond.tech/guide/menu.html
 #! ---------------------------------------------------------------
 menu:
-  About: true
-  Tags: true
+  About: 
+    i18n:
+      en: 'About'
+      zh-CN: '了解猫冰'
+  Tags: 
+    i18n: 
+      en: 'Tags'
+      zh-CN: '标签'
   Archives: false
   Friends: false
 #! ---------------------------------------------------------------
