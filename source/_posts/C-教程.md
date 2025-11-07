@@ -329,4 +329,174 @@ cout << endl;
 ```
 对于使用for循环遍历容器元素，C++11提供了遍历的新特性
 
-#### 5.4 cin.get的重载类型
+## 6.输入与输出
+
+#### 6.1 getchar()与putchar()的代替
+```
+cin.get();
+cin.put(ch);
+```
+
+#### 6.2 cin.get的重载类型
+cin.get有三种重载类型
+- `ch = cin.get()` 不传递任何参数，读取一个字符，返回读取的字符
+- `cin.get(ch)` 传递一个char类型参数，读取一个字符，返回cin的引用，可以直接用作判断条件
+- `cin.get(str, size)` 传递一个c风格字符串与大小，读取一整行，并将换行符留在输入里，返回cin的引用
+
+#### 6.3 文件尾条件
+使用文件尾条件作为循环结束条件
+**要判断读取完毕，相比于读特定字符，此方案使用场景更广泛一些**
+
+同时，键盘输入可以通过ctrl + z来模拟文件结尾
+
+```
+cin.eof(); // 检测输入流是否到文件结尾
+cin.fail(); // 检测是否读取失败(包含读取到文件结尾的情况)
+cin.bad(); // 检测读取时是否发生严重错误
+cin.good(); // 检测读取状态是否正常
+```
+以上四种cin的方法可以检测cin的读取状态
+四种状态都是在读取后判断，也就是执行一次读取操作后，再判断状态
+读取到eof时，eof与fail状态都是1
+
+同时，可以将cin对象作为一个布尔值使用
+如`if (cin)`，这将返回cin的读取状态
+
+对循环结尾条件的理解
+流程：先读取->再判断是否达到结束条件
+`while (cin >> temp)`与`while((ch = cin.get()) != EOF)`
+实际上是将“读取”与“判断”的操作合成一句了
+先从输入流读取，再判断是否读到文件结尾
+
+#### 6.4 将文件作为输入输出流
+c++提供了fistream/fostream类，它给我们提供了文件读取类似cin与cout的接口
+统一了文件输出输入和标准输入输出流的操作
+```
+#include <fstream>
+#include <iostream>
+#include <vector>
+#define IFILE "Avg.in"
+#define OFILE "Avg.out"
+#define NAMESIZE 1024
+
+int main(void)
+{
+    using std::cout, std::cin, std::endl, std::vector;
+    std::ofstream outFile;
+    std::ifstream inFile;
+    vector<double> data;
+    double temp, res = 0.0;
+
+    outFile.open(OFILE); // cin与cout是单例，但fsteam类可创建多个对象
+    inFile.open(IFILE);
+
+    if (!inFile.is_open() || !outFile.is_open()) // is_open方法判断是否打开成功
+    {
+        cout << "Unable to open "
+        << IFILE << " or "
+        << OFILE << endl;
+        exit(EXIT_FAILURE); // 没有打开成功所以不用关闭
+    }
+
+    while (inFile >> temp) // 只要还有数据，
+    {
+        data.push_back(temp);
+        res += temp;
+    }
+
+    if (inFile.eof()) // 跳出循环，检查状态（读取完成之后发生的）
+    {
+        if (data.size() == 0)
+            cout << "No value readed!" << endl;
+        else
+        {
+            cout << data.size() << " value" << (data.size() > 1 ? "s " : " ") << "readed" << endl;
+            cout << "The avg is: " << res / data.size() << endl;
+            cout << "Now putting results to " << OFILE << endl;
+
+            // 像cin/cout一样使用
+            outFile << data.size() << " value" << (data.size() > 1 ? "s " : " ") << "readed" << endl;
+            outFile << "The avg is: " << res / data.size() << endl;
+
+            outFile.close();
+            inFile.close();
+            exit(EXIT_SUCCESS); // 成功执行
+        }
+    }
+    else if (inFile.fail())
+        cout << "Type dismatch!" << endl;
+    else
+        cout << "Unknown Error!" << endl;
+
+    outFile.close();
+    inFile.close();
+    exit(EXIT_FAILURE);
+}
+```
+**补充：exit()与return的区别**
+- exit与return的级别
+    - return是语言级别的，它将控制权交给上一个调用的函数
+    - exit是系统级别的，它将控制权交给操作系统，返回值也是
+- exit与return的行为
+    - 在main函数中，exit与return行为几乎一样
+    - 而在main函数之外，exit能直接将控制权交给系统
+- 最后，在main函数里使用return其实最后也会调用exit函数
+
+## 7.函数
+
+#### 7.1 数组参数传递
+使用数组对函数传参时，必须同时传入数组指针与数组大小
+```
+f_show(const double array[], int n); // 使用const显式指定数组不会被修改
+f_modify(double array[], int n); // 使用[]说明array是一个数组
+```
+如果使用容器类vector或者array就不会出现需要传递数组大小的问题
+直接使用.size()方法获取大小即可
+
+#### 7.2 使用数组区间的函数
+另一种传递数组范围的方法，是两个指针定义开始与结束的区间
+通常，结束指针被规定为“超尾”的，指向要处理的末尾值的后一位
+对于要处理数组区间的函数来说，这个更像是一种语法糖
+因为不需要通过开始指针和处理个数来指定区间
+
+#### 7.3 常量指针的传递
+常量指针指向的变量不能被修改，就算变量本身不是常量
+
+函数参数传递时：
+const \* -> const \* (√)
+\* -> const \* (√)
+const \* -> \* (x)
+所以声明函数时，尽量在应该使用const指针的地方使用它
+这样能确保同时兼容
+
+```
+const int * array;
+int * const array;
+```
+语句一表示，指针指向的是一个const量，不能通过指针修改这个量
+语句二表示，指针是一个const量，不能修改这个指针指向的地址
+
+同时，教材还给出了一个很离谱的例子
+我们来逐步分析下
+```
+const int **pp2 // 指向常量int的指针的指针
+int * pp1; // 指向int的指针
+const int n; // 常量int
+
+pp2 = &pp1; // 可以，将int指针赋值给常量指针
+*pp2 = &n; // 可以，常量指针接受常量指针
+*pp1 = 10; // pp1不是常量指针，但得到了常量指针的地址，这样就可以用非常量指针修改常量
+```
+因此，在使用指向指针的指针时，一般不使用const
+
+#### 7.4 二维数组传参
+首先区分一下定义
+(注：[]的优先级要高于*)
+- `* a[3]` 大小为3的数组，数组里存了指针
+- `(*a)[3]` 指针，指向大小为3的数组
+- `a[][3]` 同上面的
+- `(*a)[i]` 指针，指向变长数组
+
+#### 7.5 auto与typedef对类型的简化
+当一个类型特别复杂时，可以使用typedef来定义，之后每一次引用typedef即可
+同时也可以使用auto类型，来自动判断
