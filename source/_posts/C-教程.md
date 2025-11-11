@@ -544,6 +544,207 @@ ob & foo(ob & a)
 正确的做法是将参数中的引用返回
 
 #### 8.4 对象、继承与引用
+基类引用可以指向派生类对象
+
+最经典的例子如iostream与iofstream
+iofstream由iostream派生而来，在函数参数传递时，可以用iostream & 的引用，同时接受iostream对象与iofstream对象
 
 #### 8.5 补充：cout输出格式
+下面是个人感受：
 格式个鸡毛！要格式用printf，方便得多效率还高
+cout太鸡肋了，对于一个格式转换需要多次使用切换模式的方法
+
+#### 8.6 何时使用引用参数
+不修改原数据
+- 如果是内置数据和小型结构，按值传递
+- 如果是数组，使用const指针
+- 如果是较大结构，使用const指针或者引用
+- 如果是类对象，使用const引用，因为这样可以使用类的其他特性
+
+修改原数据
+- 如果对象是内置数据类型，则使用指针
+- 是数组，则只能使用指针
+- 是大型结构，则使用指针或者引用
+- 是类对象，使用引用
+
+只是指导原则，根据情况做出最合适的选择
+
+#### 8.7 默认参数
+在声明函数时，可以指定某些参数的默认值
+如`int add(int a, int b = 1)`，这样，如果调用add(1)，返回的结果将是2
+
+默认值只能被设置在最后，且使用时也得按顺序传递，不能跳过
+
+#### 8.8 函数重载
+函数特征标：函数的参数列表
+函数重载的条件：函数同名，但特征标不同
+注意：一个参数是否是同类型的引用，不会改变特征标
+
+重载引用参数
+```
+void sink(double & var); // 接受可修改的左值
+void sink(const doule & var); // 接受不可修改的左值
+void sink(double && var) // 接受右值
+```
+
+#### 8.9 函数模板
+当一种算法对于所有类型的变量都有效时，就可以用到函数模板了
+如swap函数
+```
+template <typename type>
+void myswap(type & a, type & b)
+{
+    type temp = a;
+    a = b;
+    b = temp;
+}
+```
+
+对于函数定义的优先级
+非模板版本 > 显式具体化模板 > 模板版本
+
+```
+void Swap(double & a, const double & b) // 非模板版本
+{
+    a += b;
+}
+
+template <typename type>
+void Swap(type & a, type & b) // 模板版本
+{
+    type temp = a;
+    a = b;
+    b = temp;
+}
+
+template <>
+void Swap(double & a, double & b) // 显式具体化版本
+{
+    a += b + b;
+}
+```
+
+接下来介绍几个重要的概念
+**模板**
+并不是一个实际的函数声明，有点像class类的定义
+它接受一个特定的类型，再根据模板为这个特定类型创建函数声明
+
+**模板的显式具体化**
+当模板需要对特定类型的数据进行特定处理时
+则需要使用显式具体化单独定义，如
+```
+template <>
+void Swap(double & a, double & b) // 显式具体化版本
+{
+    a += b + b;
+}
+```
+使用前提：必须有对应的函数模板
+
+**模板的显隐式实例化**
+实例化可以理解为，用特定类型替换typename定义的类型
+替换后的函数模板再声明一个函数，如
+```
+int类型替换后的Swap
+void Swap(int & a, int & b) // int类型的一个实例
+{
+    a += b + b;
+}
+```
+
+每一次传特定类型的参数，就相当于一次隐式实例化
+如`Swap(i, j)`这是一种隐式实例化，若ij为int类型，则创建了一个int类型的函数模板实例
+
+当然，也可以显式实例化，如
+`template void Swap(int & a, int & b)`为模板创建了一个int类型的实例
+`Swap<int>(a, b)`也是一种显式实例化
+
+**C++函数重载解析**
+重载解析，即同名函数，根据传参的不同，寻找最适合的函数方案
+重载解析的大致过程
+- 使用候选的函数列表，包括所有同名的函数与函数模板
+- 从中筛选形参和实参匹配的函数
+- 确定最佳的可行函数，如果有就调用，没有就报错
+    - 从最差到最佳的顺序如下：
+    - 完全匹配，但常规函数优先于模板
+    - 提升转换，如float到double
+    - 标准转换，如int到char，long到double
+    - 用户定义的转换，如类中自定义的变量转换
+        - 完全匹配的几种平行情况
+            - Type 到 Type &
+            - Type & 到 Type
+            - Type [ ] 到 * Type
+            - Type(函数参数) 到 Type(*)(函数参数)
+            - Type 到 const Type
+            - Type 到 volatile Type
+            - Type * 到 const Type
+            - Type * 到 volatile Type *
+        - 多个完全匹配的优先情况
+            - const Type与Type，取决于实参是否是const
+            - 两个模板函数，选择具体化的那一个
+
+**新增关键字decltype**
+在书的P295，内容有点偏，以后用到了再去翻
+
+#### 8.x 第八章做题收获
+
+**知识点1**
+```
+template <typename type>
+type maxn(const type a[], const int n)
+{
+    type maxMember = a[0];
+    for (int i = 0; i < n; i++)
+        if (a[i] > maxMember)
+            maxMember = a[i];
+    
+    return maxMember;
+}
+
+template <>
+char * maxn(const char * a[], const int n)
+{
+    char * maxMember = a[0];
+    for (int i = 0; i < n; i++)
+        if (strlen(a[i]) > strlen(maxMember))
+            maxMember = a[i];
+    
+    return maxMember;
+}
+```
+乍一看，第二个模板具体化没有任何问题，但编译以后仍然提示没有找到匹配模板
+问题出在`const char * a[]`与`char * const a[]`的解析区别
+C++对复杂表达式的解析方法：右左法则 (right-left rule)：
+从变量名开始，先看左边再看右边，遇到括号则先处理括号内部，直到整个声明解析完毕
+
+对于情况1，顺序为a[]，a是数组 -> *，它存储指针 -> const char，指针指向const char
+对于情况2，顺序为a[]，a是数组 -> const，它存储常量 -> char *，常量是char *
+
+第一条表示，a是一个指针数组，**指针指向的内容**是不可修改的
+第二条表示，a是一个指针数组，**指针的指向**是不可修改的
+
+再来看第一个函数模板的定义，符合第二条，即指针的指向不能修改
+则函数声明需要修改为
+`char * maxn(char * const a[], const int n)`
+
+是否可以从这里延申开来理解复杂指针定义的问题？（C陷阱与缺陷2.1节）
+
+**知识点2**
+```
+    cout << "Enter something (q to quit):" << endl;
+    while (getline(cin, container)) 
+    {
+        if (container.size() == 0)
+            continue;
+        if (container[0] == 'q')
+            break;
+            
+        cout << "Enter something (q to quit):" << endl;
+    }
+```
+函数要实现的逻辑：不断读取用户输入，直到遇到EOF或者q退出
+这是一个错误的程序示例，因为它不能处理以q打头的字符串
+也就是说，结束程序需要的输入 实际上包含了 用户想要处理的输入
+
+正确且简洁的做法是`while (getline(cin, container) && container != "q")`
+空的string也能用于比较，所以不需要额外判断
