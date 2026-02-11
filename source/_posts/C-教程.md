@@ -980,6 +980,8 @@ C++在为类新建一个对象时，会自动调用类的默认构造函数
 1. 运算符至少有一个操作值是用户定义的类型
 2. 运算符不能违背原来的语法规则，优先级也保持不变
 3. 不能创建新运算符
+4. 有不能重载的运算符，见387页
+5. =、()、[]、->只能重载为成员函数
 
 #### 11.2 友元
 友元是C++提供的另一种访问类私有部分的方法
@@ -1005,4 +1007,357 @@ C++在为类新建一个对象时，会自动调用类的默认构造函数
 `void operator -(void);`一元形式
 `void operator -(const Var & var)`二元形式
 
-#### 11.3 类的自动类型转换与强制类型转换
+#### 11.3 类的类型转换
+
+**在类中定义的隐式转换**
+**自定义类=基础类**
+只有一个参数的构造函数会被用作转换函数
+`Time(const double var);`或`Time(const int var, int mode = 0);`
+来使用如`Time time = 1.3, time = 13;`这样的隐式转化
+
+**基础类=自定义类**
+需要在类定义里声明类似
+`operator double() const;`的函数（注意：不需要返回值）
+`Time::operator int() const { return int (var); }`提供自动转换的具体方法
+来实现`double var = time, int var = time;的隐式转换`
+
+同时，可以添加`explicit`关键字，防止无预期的隐式转换，而强制使用显式转换
+
+## 12.类和动态分配内存
+#### 12.1 动态内存和类
+
+**对于类中静态成员的使用**
+`static int numStrings;`
+类中静态成员，被所有对象共用
+也就是无论有多少个对象，numStrings参数只有一个，且被所有对象共用
+
+如果要初始化，则需要在类外初始化
+`int StringBad::numStrings = 0;`
+因为类只是指定内存如何分配，并没有实际上分配内存
+但如果静态类型是const类或者枚举型，则可直接在类中初始化
+
+**C++中的特殊成员函数**
+就是不提供定义，但程序会自动提供的函数
+- 默认构造函数
+- 默认析构函数
+- 复制构造函数（也是构造函数的一种）
+- 赋值运算符
+- 地址运算符
+
+前两个好理解，为什么会有后面三个？
+自己想想，自己新定义了一个类后，是不是可以直接使用等号赋值，以及使用地址运算符求地址？
+但是按理来说，对这些操作符来说，这是一个新的类，对这个类应该没有对应的操作才对
+所以C++提供这些特殊成员函数，就是为了**简化类的编写**
+
+**复制构造函数**
+`StringBad sailor = sports;` 将用已有对象初始化新建对象
+相当于直接调用复制构造函数`StringBad(const StringBad & obj)`
+
+**赋值运算符**
+```
+StringBad sailor;
+sailor = sports;
+``` 
+将已有对象赋值给另外一个已有对象
+相当于调用赋值运算符`String & operator =(const StringBad & obj)`
+
+- 复制构造函数
+    - 调用条件
+        创建对象副本时，都会调用复制构造函数
+        如，用已有对象初始化新对象时，或者函数按值传递时
+    - 默认复制构造函数
+        - 功能：逐个赋值成员的值到对象副本
+        - 问题：如果值是指针，则两个对象的指针将指向同一个地址
+            可能会导致一个空间被释放两次，这叫做浅拷贝
+    - 自定义复制构造函数
+        - 功能：可以自定义功能
+        - 优点：对于指针指向的结果可以深拷贝
+- 赋值运算符
+    - 调用条件
+        对象赋值给另外一个对象
+        如，使用'='，显式地将对象的值赋给已存在的对象
+    - 默认赋值运算符
+        同样是逐个复制，浅拷贝
+    - 自定义赋值运算符
+        自定义复制操作，深拷贝
+
+#### 12.2 实践：编写一个String类型
+**new与delete的注意事项**
+如果是delete [] str，则需要在初始化时使用new char[1]来兼容（而不是new char）
+
+**中括号操作符的注意事项**
+对于中括号运算符，第一个参数在括号左边，第二个参数在括号中间
+例子，对于函数：
+```
+char & operator [](int i)
+{
+    return str[i];
+}
+```
+将返回私有数据str第i个字符的引用
+
+**const函数特征标**
+对于函数：
+```
+const char & operator [](int i) const
+{
+    return str[i];
+}
+```
+const特征标的作用有：
+- 标识函数不会修改数据
+- 对于const类型的对象，只能使用有const标识符的方法
+    - 也就是说，当对象是const类型时，使用[]运算符会调用这个方法
+
+**有关返回对象的说明**
+- 返回指向const对象的引用
+使用情况：参数的对象是const类型，同样需要通过const类型引用返回
+- 返回指向非const对象的引用
+使用情况：重载赋值运算符
+- 返回对象
+使用情况：要返回的对象是局部变量，则需要一整个对象来传递
+- 返回const对象
+使用情况：不想让用户对返回对象进行操作的情况
+
+**对象指针使用**
+- 指向已有对象的指针
+`String * ptr = &str1;`
+- 指向新建对象的指针（通过new新建对象）
+`String * ptr = new String(str1);`
+这里使用复制构造函数新建了一个对象，并且返回了对象的指针
+相应的，delete删除创建的变量，提供指针即可
+`delete ptr;`
+
+**类内静态成员**
+`static size_t stringCount;` 静态变量
+`static size_t getStringCount();` 静态函数
+
+- 静态成员
+    静态成员不属于任何一个特殊的对象，而是被所有对象共用
+    - 静态变量
+        需要在类内声明它的存在，随后，需要在类外初始化
+        `size_t String::stringCount = 0;`
+        这里是定义（分配内存），而不是改变stringCount的值，因此，即便stringCount是private，此语句仍然成立
+    - 静态函数
+        通常用来获取静态变量
+        不能通过某个特定的对象调用，而是使用`String::getStringCount()`调用
+
+#### 12.3 实践：实现ATM等待时间预测
+
+**类的接口**
+在编写一个类之前，首先需要考虑类需要哪些接口，然后再着手实现相关代码
+![例子](../images/编写类接口.png)
+
+**类内声明嵌套结构**
+如果一个结构只希望在类内使用的话，可以只在类内定义
+如，Queue类内的Node结构
+```
+class Queue
+{
+private:
+    struct Node
+    {
+        Item item;
+        Node * next;
+    };
+};
+```
+
+**成员初始化列表**
+```
+Classy::Classy(const int n, const int m) : mem1(n), mem2(n * m)
+{
+    ;
+}
+```
+
+成员初始化列表用于构造函数，可以在创建对象实例之前，对变量进行初始化
+特点是初始化的值可以由用户提供
+注意以下几点：
+- 这种格式只能用于构造函数
+- 必须用这种格式初始化非静态常量成员
+- 必须用这种格式初始化引用成员
+
+**伪私有方法**
+在类中：
+```
+private:
+    Classy(const Classy &);
+    const Classy & operator= (const Classy &);
+```
+将复制构造函数和赋值构造函数都设置为私有
+即可禁止用户使用这两个函数
+
+## 13.类与继承
+从这章开始我将跟着视频学习，C++ primer plus讲的太繁杂了
+#### 13.1 初识继承
+**继承好处**
+对于有共性同时有特性的对象，可以是用继承的方法减少重复代码
+![继承结构](../images/继承举例.png)
+
+**继承基本语法**
+```
+class Cat : public Animals
+{
+public:
+    void meow(void) { std::cout << "meowing..." << std::endl; }
+};
+```
+子类又称派生类
+父类又称基类
+
+#### 13.2 继承方式
+**继承方式**
+继承方式有三种
+- public
+- protect
+- private
+
+**继承机制**
+三种继承方式都不可以继承父类的private内容
+- 使用public，父类的public和protect内容不变地传递给子类
+- 使用protect，父类的public和protect内容都变为子类的protect
+- 使用private，父类的public和protect内容都变为子类的private
+
+另外，子类会继承父类的所有参数，但private类型的继承参数无法访问
+
+**继承构造与析构顺序**
+只要新建一个子类对象，就会调用父类的构造与析构函数
+调用顺序为：父类构造函数->子类构造函数->子类析构函数->父类析构函数
+
+#### 13.3 同名成员处理方式
+- 访问子类同名对象：正常访问即可
+- 访问父类同名对象：需要加作用域
+
+**例子**
+```
+Son s;
+s.func(); // 访问子类同名对象
+s.Father::func(); // 访问父类同名对象
+```
+
+#### 13.3 多继承(*)
+只需了解基本语法即可
+```
+class Son : public Base1 : public Base2
+{
+    ;
+};
+```
+
+出现同名问题同上面一样的解决方案
+
+#### 13.4 虚继承(*)
+主要是用于解决棱形继承的问题
+```
+class Base {
+public:
+    int data;
+};
+
+class Derived1 : virtual public Base {  // 虚继承
+};
+
+class Derived2 : virtual public Base {  // 虚继承
+};
+
+class Final : public Derived1, public Derived2 {
+};
+```
+
+这样避免了在最终的Final对象里，有两个不同的data
+实现原理：每个虚继承的类都有一个虚基类表指针，指向虚基类表，表中存储了到虚基类的偏移量
+
+#### 13.5 多态
+**C++面向对象三大特性**
+- 封装（隐藏实现）
+- 继承（代码复用）
+- 多态（同一接口不同实现）
+
+**两种多态类型**
+- 静态多态：如同名函数与运算符重载，在编译时确定
+- 动态多态：如派生类和虚函数实现运行时多态
+
+**动态多态运行示例**
+```
+class Animal
+{
+    virtual void speak(void) { cout << "动物在说话" << endl; }
+};
+
+class Dog
+{
+    void speak(void) { cout << "小狗在说话" << endl; }
+};
+
+void doSpeak(Animal & animal)
+{
+    animal.speak();
+}
+
+Dog dog;
+doSpeak(dog);
+```
+
+如果不使用虚函数，`doSpeak(dog);`最后会执行animal的speak方法，因为该函数的指针在编译时便确定了
+
+**多态原理解释**
+`virtual void speak(void);`实际上定义的是一个虚函数指针(vfptr)，这个指针指向虚函数表(vftable)，表中记录着虚函数的地址
+子类可以从父类那里继承虚函数表，也可以通过定义同名函数的方法，覆写虚函数地址
+
+**多态对代码的简化：计算器类**
+```
+// 首先实现计算器的抽象类
+// 不需要提供实现功能的原码，只需要计算器的抽象框架
+class Cal
+{
+protected:
+    int m_A, m_B;
+public:
+    void set(const int A, const int B) { m_A = A, m_B = B; }
+    virtual int getResult(void) { return 0; }
+};
+
+class AddCal : public Cal
+{
+public:
+    int getResult(void) { return m_A + m_B; }
+};
+
+class DivCal : public Cal
+{
+public:
+    int getResult(void) { return m_A - m_B; }
+};
+
+class MulCal : public Cal
+{
+public:
+    int getResult(void) { return m_A * m_B; }
+};
+
+// 多态使用条件：
+// 父类指针指向引用对象
+int Calculate(Cal & obj)
+{
+    return obj.getResult();
+}
+```
+
+使用多态的好处：
+能将不同功能的代码块分开，保持代码块的独立性
+实现了开闭原则（对增加开放，对修改关闭），在真实开发中很常用
+- 组织结构清晰
+- 可读性强
+- 对于前期和后期拓展以及维护性高
+
+#### 13.6 纯虚函数于抽象类
+在我们编写抽象类时，需要编写不执行任何操作的虚函数
+此时就可以用到纯虚函数
+
+语法：`virtual void func(void) = 0;`
+
+当类中有一个纯虚函数，这个类就是抽象类
+抽象类特点：
+- 无法实例化
+- 子类必须重写基类的纯虚函数

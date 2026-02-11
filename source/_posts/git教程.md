@@ -2,9 +2,9 @@
 title: git分支部分教程
 date: 2025-10-16 22:46:06
 tags:
- - tutorial
-categories:
  - git
+categories:
+ - tutorial
 feature: true
 ---
 > 得先说明，这些东西都是写给我自己看的
