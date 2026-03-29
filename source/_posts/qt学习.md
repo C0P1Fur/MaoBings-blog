@@ -390,3 +390,113 @@ void Widget::on_buttonEqual_clicked()
     ui->lineExpression->setText(expression);
 }
 ```
+
+### 3. 计时器
+widget对象里，内置有计时器功能
+实现计时器功能有两种方式
+1. 使用QObject对象自带的计时器功能（也就是widget对象自带的）
+2. 使用QTimer对象
+
+**QObject自带的计时器功能**
+我就不写笔记了，直接看代码注释吧，简单
+widget.h
+```
+class Widget : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit Widget(QWidget *parent = nullptr);
+    // widget对象中自带的计时器触发函数（虚函数，需要用户重写）
+    // 一但有计时器被触发，就都会进入这个函数
+    virtual void timerEvent(QTimerEvent * event);
+    ~Widget() override;
+
+private slots:
+    void on_startButton_clicked();
+
+    void on_pauseButton_clicked();
+
+private:
+    Ui::Widget *ui;
+    // 用于存储计时器的ID
+    int numberDisplayTimerID;
+    // 计时器触发时间间隔
+    const static int numberDisplayTimeInterval = 100;
+    //判断计时器是否开启
+    bool numberTimerOn;
+    // 生成随机数
+    QRandomGenerator numberGenerator;
+};
+```
+widget.cpp
+```
+// 计时器被开启
+void Widget::on_startButton_clicked()
+{
+    if (numberTimerOn)
+        return;
+    numberDisplayTimerID = this->startTimer(numberDisplayTimeInterval); // 记下开启的计时器的id
+    numberTimerOn = 1;
+}
+
+// widget中
+void Widget::timerEvent(QTimerEvent * event)
+{
+    if (event->timerId() != numberDisplayTimerID)
+        return;
+
+    int randomNumber = numberGenerator.bounded(0, 1000);
+    QString randomNumberStr = QString::number(randomNumber);
+    ui->numberLabel->setText(randomNumberStr);
+}
+
+// 计时器被关闭
+void Widget::on_pauseButton_clicked()
+{
+    if (!numberTimerOn)
+        return;
+    this->killTimer(numberDisplayTimerID);
+    numberTimerOn = 0;
+}
+```
+
+**QTimer实现定时器**
+需要使用connect函数将QTimer信号对象与槽关联起来
+比较简单，所以不详细说，要用的时候可以直接看教程
+
+### 4. 文件操作
+之后要用的时候再看
+
+### 5. 网络部分
+qt内置了tcp的网络连接部分
+如果需要在qt中使用该部分，需要在CMakeList.txt文件中，添加几段代码
+```
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network) // 需要查找qt的network库
+target_link_libraries(QTimer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network) // 然后链接network库
+```
+
+首先，创建QTcpSocket对象，以实现后续的操作
+widget.h
+`QTcpSocket socket;`
+之后再连接服务器
+widget.cpp
+```
+void Widget::on_connectButton_clicked()
+{
+    QString IP = "127.0.0.1";
+    QString port = "8000";
+
+    // IP需要转换成QHostAddress对象，port需要short类型
+    socket->connectToHost(QHostAddress(IP), port.toShort());
+
+    // 将tcp的信号与槽关联起来，这样就可以对服务器的行为做出响应
+    connect(socket, &QTcpSocket::connected, [this](){
+        QMessageBox::information(this, "提示", "链接成功");
+    });
+
+    connect(socket, &QTcpSocket::disconnected, [this](){
+            QMessageBox::information(this, "提示", "断开链接");
+    });
+}
+```
