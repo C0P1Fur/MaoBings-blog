@@ -500,3 +500,56 @@ void Widget::on_connectButton_clicked()
     });
 }
 ```
+
+### 6. 文件操作
+```
+    QString fileName = QFileDialog::getOpenFileName(this, "选择文件", QCoreApplication::applicationFilePath(), "*.cpp;;*.hpp;;*.h");
+    if (fileName.isEmpty())
+    {
+        QMessageBox::warning(this, "警告", "请选择文件!");
+    }
+    {
+        QFile file(fileName);
+        bool isOpen;
+
+        isOpen = file.open(QIODevice::ReadOnly);
+        if (isOpen)
+        {
+            QByteArray fileResult = file.readAll();
+            QString fileContent(fileResult);
+            // 设置标题
+            this->setWindowTitle(fileName.split("/").last());
+            // 设置内容
+            ui->mainContentEdit->setText(fileContent);
+        }
+        else
+            QMessageBox::warning(this, "警告", "文件打开失败!");
+    }
+```
+
+### 7. 事件
+事件也是信号的一种，可以设置对应的槽函数来实现功能
+QT中的常见事件：
+1. 键盘事件:按键按下和松开
+2. 鼠标事件:鼠标移动,鼠标按键的按下和松开
+3. 拖放事件:用鼠标进行拖放
+4. 滚轮事件:鼠标滚轮滚动
+5. 绘屏事件:重绘屏幕的某些部分
+6. 定时事件:定时器到时
+7. 焦点事件:键盘焦点移动
+8. 进入和离开事件:鼠标移入widget之内,或是移出
+9. 移动事件:widget的位置改变
+10. 大小改变事件:widget的大小改变
+11. 显示和隐藏事件:widget显示和隐藏
+12. 窗口事件:窗口是否为当前窗口
+QT将系统产生的消息转换为事件，并将事件封装为对象，所有的QT事件都继承抽象对象QEvent，任意的QObject对象都具备有处理QEvent的能力
+
+其中，函数event作为事件的总入口，所有被触发的事件都要运行这个函数
+
+### 999.游戏项目示例
+为了能够更好地管理项目结构，首先需要单独创建一个config.h，来存储游戏需要的配置参数
+并创建一个initScene函数，在这个函数里初始化窗口，并且最后在主函数里调用
+
+**补充信息**
+QWidget实际上是QMainWindow和QDialog的父类，因为后者只是相较于前者多了几个工具栏
+QWidget则完全是一个空窗口
